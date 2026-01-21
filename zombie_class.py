@@ -3,6 +3,34 @@ import random
 import pygame
 vector = pygame.math.Vector2
 
+walk_right, walk_left, die_right, die_left, rise_right, rise_left, mask = [], [], [], [], [], [], []
+
+for i in range(1, 11):
+    walk_right.append(pygame.transform.smoothscale(pygame.image.load
+                                                        (f"zombie_knight_assets/images/zombie/boy/walk/Walk ({i}).png"),
+                                                        (64, 64)))
+    die_right.append(pygame.transform.smoothscale(pygame.image.load
+                                                         (f"zombie_knight_assets/images/zombie/boy/dead/Dead ({i}).png"),
+                                                         (64, 64)))
+    walk_right.append(pygame.transform.smoothscale(pygame.image.load
+                                                         (f"zombie_knight_assets/images/zombie/girl/walk/Walk ({i}).png"),
+                                                         (64, 64)))
+    die_right.append(pygame.transform.smoothscale(pygame.image.load
+                                                         (f"zombie_knight_assets/images/zombie/girl/dead/Dead ({i}).png"),
+                                                         (64, 64)))
+for i in range(1, 21):
+    walk_left.append(pygame.transform.flip(walk_right[i-1], True, False))
+    die_left.append(pygame.transform.flip(die_right[i - 1], True, False))
+
+
+rise_right = die_right[9::-1] + die_right[:9:-1]
+rise_left = die_left[9::-1] + die_left[:9:-1]
+
+
+mask.append(pygame.transform.flip(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (1).png"), (64, 64)), True, False))
+mask.append(pygame.transform.flip(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (1).png"), (64, 64)), True, False))
+mask.append(pygame.transform.flip(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/boy/walk/Walk (1).png"), (64, 64)), True, False))
+mask.append(pygame.transform.flip(pygame.transform.scale(pygame.image.load("zombie_knight_assets/images/zombie/girl/walk/Walk (1).png"), (64, 64)), True, False))
 
 class Zombie(pygame.sprite.Sprite):
     def __init__(self, platform_group, portal_group, min_speed, max_speed):
@@ -14,52 +42,19 @@ class Zombie(pygame.sprite.Sprite):
         self.GRAVITY = 0.8
         self.rise_time = 0
 
-        self.walk_right = [None]*20
-        self.walk_left = []
-
-        self.die_right = [None]*20
-        self.die_left = []
-
-        self.rise_right = []
-        self.rise_left = []
-
-        self.gen_choice = ['boy', 'girl']
+        self.gen_choice = [0, 1]
         self.gender = random.choice(self.gen_choice)
 
-        for i in range(1, 11):
-            self.walk_right[i - 1] = (pygame.transform.scale(pygame.image.load
-                                                             (f"zombie_knight_assets/images/zombie/{self.gender}/walk/Walk ({i}).png"),
-                                                             (64, 64)))
-            self.walk_right[i + 9] = pygame.transform.smoothscale(pygame.image.load
-                                                                  (f"zombie_knight_assets/images/zombie/{self.gender}/walk/Walk ({i}).png"),
-                                                                  (64, 64))
-
-        for image in self.walk_right:
-            self.walk_left.append(pygame.transform.flip(image, True, False))
-
-        for i in range(1, 11):
-            self.die_right[i - 1] = (pygame.transform.scale(pygame.image.load
-                                                             (f"zombie_knight_assets/images/zombie/{self.gender}/dead/Dead ({i}).png"),
-                                                             (64, 64)))
-            self.die_right[i + 9] = pygame.transform.smoothscale(pygame.image.load
-                                                                  (f"zombie_knight_assets/images/zombie/{self.gender}/dead/Dead ({i}).png"),
-                                                                  (64, 64))
-
-        for image in self.die_right:
-            self.die_left.append(pygame.transform.flip(image, True, False))
-
-        self.rise_right = self.die_right[9::-1] + self.die_right[:9:-1]
-        self.rise_left = self.die_left[9::-1] + self.die_left[:9:-1]
 
         self.frame_count = 0
         self.direction = random.choice([1, -1])
 
         if self.direction == 1:
-            self.image = self.walk_right[10]
-            self.mask_image = self.walk_right[0]
+            self.image = walk_right[0 + self.gender]
+            self.mask_image = mask[self.gender]
         if self.direction == -1:
-            self.image = self.walk_left[10]
-            self.mask_image = self.walk_left[0]
+            self.image = walk_left[0 + self.gender]
+            self.mask_image = mask[self.gender]
         self.mask = pygame.mask.from_surface(self.mask_image)
 
 
@@ -112,9 +107,9 @@ class Zombie(pygame.sprite.Sprite):
             self.position += self.velocity + self.acceleration/2
 
             if self.velocity.x < 0:
-                self.animate(self.walk_left, 0.5)
+                self.animate(walk_left[self.gender::2], 0.5)
             else:
-                self.animate(self.walk_right, 0.5)
+                self.animate(walk_right[self.gender::2], 0.5)
 
             if self.rect.right < 10:
                 self.position.x = 1280
@@ -145,18 +140,18 @@ class Zombie(pygame.sprite.Sprite):
     def check_animation(self):
         if self.die_bool:
             if self.velocity.x > 0:
-                self.animate(self.die_right, 0.1)
+                self.animate(die_right[self.gender::2], 0.1)
             elif self.velocity.x < 0:
-                self.animate(self.die_left, 0.1)
+                self.animate(die_left[self.gender::2], 0.1)
 
         if self.rise_bool:
             if self.velocity.x > 0:
-                self.animate(self.rise_right, 0.1)
+                self.animate(rise_right, 0.1)
             elif self.velocity.x < 0:
-                self.animate(self.rise_left, 0.1)
+                self.animate(rise_left, 0.1)
 
     def animate(self, frame_list, speed):
-        if self.frame_count < len(frame_list) / 2 - 1:
+        if self.frame_count < len(frame_list) - 1:
             self.frame_count += speed
 
         else:
@@ -164,15 +159,15 @@ class Zombie(pygame.sprite.Sprite):
 
             if self.die_bool:
                 self.die_bool = False
-                self.frame_count = 9
+                self.frame_count = 18 + self.gender
                 self.position.y += 5
                 self.rect.midbottom = self.position
             if self.rise_bool:
                 self.rise_bool = False
                 self.velocity.x *= -1
-                self.frame_count = 9
+                self.frame_count = 18 +self.gender
                 self.is_dead = False
 
-        self.image = frame_list[int(self.frame_count) + 10]
+        self.image = frame_list[int(self.frame_count)]
 
     
