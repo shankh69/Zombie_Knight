@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
         self.GRAVITY = 0.8
         self.JUMP_SPEED = -18
         self.STARTING_HEALTH = 100
-        self.STARTING_POSITION = vector(x, y)
+        self.STARTING_POSITION = (x, y)
         self.single_fire = True
         self.on_ground = False
 
@@ -210,7 +210,7 @@ class Player(pygame.sprite.Sprite):
             self.frame_count = 0
 
     def reset(self):
-        self.position = self.STARTING_POSITION
+        self.position = vector(self.STARTING_POSITION)
         self.rect.midbottom = self.position
         self.velocity = vector(0, 0)
         self.image = self.idle_right[10]
@@ -218,6 +218,8 @@ class Player(pygame.sprite.Sprite):
         self.animate_slash = False
         self.frame_count = 0
         self.acceleration.x = 0
+        self.single_fire = True
+        self.on_ground = False
 
     def animate(self, frame_list, speed):
         if self.frame_count < len(frame_list)/2 - 1:
